@@ -53,8 +53,18 @@ const main = function() {
     res.send("hello")
   })
   app.get("/getAll", (req, re) => {
-    let results = minioClient.listObjectsV2(BucketName)
-    res.send(results)
+    const data = []
+    const result = minioClient.listObjects(BucketName, '', true, { IncludeVersion: true })
+    result.on('data', function(obj) {
+      data.push(obj)
+    })
+    result.on('end', function() {
+      console.log(data)
+    })
+    result.on('error', function(err) {
+      console.log(err)
+    })
+    res.send(data)
   })
 }
 app.get("/getOne", (req, res) => {
@@ -64,8 +74,9 @@ app.get("/getOne", (req, res) => {
 
 })
 app.delete("/delete/:name", (req, res) => {
-  let id = req.params
-  minioClient.removeObject(Bucketname, id)
+  let name = req.params
+  minioClient.removeObject(Bucketname, name)
+  res.send("deleted")
 })
 //callling  the main function
 main()
