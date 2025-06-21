@@ -16,7 +16,6 @@ let app = express();
 const main = function() {
   //the initials(BucketName, the empty fields objecy and the fake sequelize object)
   let BucketName = "test";
-  let fields = {};
   let sequelize = {
     create: function(anything, anything) {
     }
@@ -26,6 +25,8 @@ const main = function() {
     let Busboy = busboy({
       headers: req.headers
     })
+    let fields = {};
+
     minioClient.makeBucket(BucketName)
     //the collection of the file
     Busboy.on("file", (fieldname, file, filename) => {
@@ -52,6 +53,40 @@ const main = function() {
     })
     res.send("hello")
   })
+  app.path("/update:name", (req, res) => {
+    let Busboy = busboy({
+      headers: req.headers
+    })
+    let fields = {};
+    let name = req.params
+
+    minioClient.makeBucket(BucketName)
+    //the collection of the file
+    Busboy.on("file", (fieldname, file, filename) => {
+      minioClient.putObject(BucketName, "fakename.md", file, (err, etag) => {
+        if (err) {
+          console.log(err)
+        }
+        console.log(etag)
+      })
+    })
+    Busboy.on("end", () => {
+      console.log("uploading finished")
+    })
+    //the field function inserting the keys and values in th fields object e.g 
+    //array=[fieldnam:value,fieldname:value,...]
+    //fields ={
+    // Title:"I am a title"
+    //}
+    Busboy.on("field", (fieldname, value) => {
+      fields[fieldname = value]
+    })
+    Busboy.on("finish", () => {
+      sequelize.save(name, fields.Title, fields.Description)
+    })
+    res.send("hello")
+
+  })
   app.get("/getAll", (req, re) => {
     const data = []
     const result = minioClient.listObjects(BucketName, '', true, { IncludeVersion: true })
@@ -73,6 +108,7 @@ app.get("/getOne", (req, res) => {
   res.send(result)
 
 })
+
 app.delete("/delete/:name", (req, res) => {
   let name = req.params
   minioClient.removeObject(Bucketname, name)
