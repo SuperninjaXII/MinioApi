@@ -39,19 +39,34 @@ const main = function() {
     Busboy.on("end", () => {
       console.log("uploading finished")
     })
-    //the field function inserting the keys and values in th fields object e.g
+    //the field function inserting the keys and values in th fields object e.g 
+    //array=[fieldnam:value,fieldname:value,...]
     //fields ={
-    //"file":"test.md"
+    // Title:"I am a title"
     //}
-    Busboy.on("field", (fieldname, val) => {
-      fields[fieldname = val]
+    Busboy.on("field", (fieldname, value) => {
+      fields[fieldname = value]
     })
     Busboy.on("finish", () => {
-      sequelize.create(name, descriptionn)
+      sequelize.create(fields.Title, fields.Description)
     })
     res.send("hello")
   })
+  app.get("/getAll", (req, re) => {
+    let results = minioClient.listObjectsV2(BucketName)
+    res.send(results)
+  })
 }
+app.get("/getOne", (req, res) => {
+  let name = res.body
+  let result = minioClient.getObject(BucketName, name);
+  res.send(result)
+
+})
+app.delete("/delete/:name", (req, res) => {
+  let id = req.params
+  minioClient.removeObject(Bucketname, id)
+})
 //callling  the main function
 main()
 app.listen(3000, () => {
